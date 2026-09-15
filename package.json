@@ -1,0 +1,62 @@
+{
+	"name": "confium",
+	"version": "0.0.1",
+	"description": "Manage configuration files",
+	"funding": {
+		"type": "individual",
+		"url": "https://github.com/sponsors/james-pre"
+	},
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js",
+		"./*": "./dist/*.js"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"format:check": "prettier --check .",
+		"format": "prettier --write .",
+		"build": "tsc",
+		"lint": "tsc --noEmit && eslint src",
+		"prepublishOnly": "npx tsc"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/james-pre/confium.git"
+	},
+	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
+	"license": "LGPL-3.0-or-later",
+	"bugs": {
+		"url": "https://github.com/james-pre/confium/issues"
+	},
+	"homepage": "https://github.com/james-pre/confium#readme",
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@types/node": "^24.7.0",
+		"eslint": "^10.1.0",
+		"globals": "^17.4.0",
+		"prettier": "^3.2.5",
+		"typedoc": "^0.28.18",
+		"typescript": "^6.0.2",
+		"typescript-eslint": "^8.58.0"
+	},
+	"engines": {
+		"node": ">=22.0.0"
+	},
+	"prettier": {
+		"singleQuote": true,
+		"useTabs": true,
+		"trailingComma": "es5",
+		"tabWidth": 4,
+		"printWidth": 120,
+		"arrowParens": "avoid",
+		"experimentalOperatorPosition": "start"
+	},
+	"peerDependencies": {
+		"utilium": "^3.7.0",
+		"zod": "^4.5.0"
+	}
+}
