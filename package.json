@@ -14,7 +14,8 @@
 		"./*": "./dist/*.js"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"README.md"
 	],
 	"scripts": {
 		"format:check": "prettier --check .",
