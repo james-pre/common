@@ -178,10 +178,10 @@ function defaultsOf(schema: z.ZodType): unknown {
  * Manager for configuration files
  */
 export class Manager<
-	LoadOpts extends LoadOptions = LoadOptions,
-	Shape extends Readonly<Record<string, z.ZodType>> = Readonly<Record<string, z.ZodType>>,
-	out In extends z.input<z.ZodObject<Shape>> = z.input<z.ZodObject<Shape>>,
-	out FileData = z.output<ReturnType<typeof z.deepPartial<z.ZodObject<Shape>>>>,
+	LoadOpts extends LoadOptions,
+	Schema extends z.ZodObject = z.ZodObject,
+	out In extends z.input<Schema> = z.input<Schema>,
+	out FileData = z.output<ReturnType<typeof z.deepPartial<Schema>>>,
 > extends EventEmitter<{
 	load: [path: string, config: FileData, options: Partial<LoadOpts>];
 	post_load: [path: string, config: FileData, options: Partial<LoadOpts>];
@@ -191,26 +191,32 @@ export class Manager<
 	write: [path: string, data: FileData];
 	reload: [];
 }> {
-	public readonly schema: z.ZodObject<Shape>;
-	public readonly fileSchema: ReturnType<typeof z.deepPartial<z.ZodObject<Shape>>>;
+	public readonly fileSchema: ReturnType<typeof z.deepPartial<Schema>>;
 
-	protected readonly files: Map<string, File<FileData>> = new Map();
+	protected readonly _files: Map<string, File<FileData, LoadOpts>> = new Map();
 
 	public get filePaths(): MapIterator<string> {
-		return this.files.keys();
+		return this._files.keys();
 	}
 
-	public readonly data: z.output<z.ZodObject<Shape>>;
+	public get files(): IteratorObject<Readonly<File<FileData, LoadOpts>>> {
+		return this._files.values().map(f => structuredClone(f));
+	}
+
+	public configAt(path: string): Readonly<FileData> | undefined {
+		return structuredClone(this._files.get(path)?.data);
+	}
+
+	public readonly data: z.output<Schema>;
 
 	constructor(
-		shape: Shape,
+		public readonly schema: Schema,
 		protected options: ManagerOptions = {}
 	) {
 		super({ captureRejections: true });
 
-		this.schema = z.object(shape);
 		this.fileSchema = z.deepPartial(
-			stripDefaults(z.object(options.enableIncludes ? { ...shape, include } : shape)) as z.ZodObject<Shape>
+			stripDefaults(z.object(options.enableIncludes ? { ...schema.shape, include } : schema.shape)) as Schema
 		);
 		this.data = this.schema.parse(this.defaults);
 	}
@@ -218,20 +224,20 @@ export class Manager<
 	/**
 	 * A fresh config with only the schema's defaults applied.
 	 */
-	public get defaults(): z.output<z.ZodObject<Shape>> & In {
-		return structuredClone(defaultsOf(this.schema) ?? {}) as z.output<z.ZodObject<Shape>> & In;
+	public get defaults(): z.output<Schema> & In {
+		return structuredClone(defaultsOf(this.schema) ?? {}) as z.output<Schema> & In;
 	}
 
-	public get<const K extends string | number = FlattenKeys<z.output<z.ZodObject<Shape>>>>(
+	public get<const K extends string | number = FlattenKeys<z.output<Schema>>>(
 		key: K
-	): GetByString<z.output<z.ZodObject<Shape>>, K> {
+	): GetByString<z.output<Schema>, K> {
 		return getByString(this.data, key);
 	}
 
-	public set<
-		const K extends string | number = FlattenKeys<z.output<z.ZodObject<Shape>>>,
-		V = GetByString<z.output<z.ZodObject<Shape>>, K>,
-	>(key: K, value: V) {
+	public set<const K extends string | number = FlattenKeys<z.output<Schema>>, V = GetByString<z.output<Schema>, K>>(
+		key: K,
+		value: V
+	) {
 		setByString(this.data, key, value);
 	}
 
@@ -251,7 +257,7 @@ export class Manager<
 	}
 
 	loadFile(path: string, options: Partial<LoadOpts>) {
-		if (this.files.has(path)) return;
+		if (this._files.has(path)) return;
 
 		let json;
 		try {
@@ -285,7 +291,7 @@ export class Manager<
 			file = json;
 		}
 
-		this.files.set(path, {
+		this._files.set(path, {
 			auto: false,
 			wasIncluded: false,
 			type: typeFromPath(path),
@@ -312,11 +318,11 @@ export class Manager<
 	}
 
 	/** Get the entry for `path`, adding one for a file that has not been loaded */
-	protected fileAt(path: string): File<FileData> {
-		const existing = this.files.get(path);
+	protected fileAt(path: string): File<FileData, LoadOpts> {
+		const existing = this._files.get(path);
 		if (existing) return existing;
 
-		const file: File<FileData> = {
+		const file: File<FileData, LoadOpts> = {
 			path,
 			data: {} as FileData,
 			type: typeFromPath(path),
@@ -324,11 +330,11 @@ export class Manager<
 			wasIncluded: false,
 			options: {},
 		};
-		this.files.set(path, file);
+		this._files.set(path, file);
 		return file;
 	}
 
-	protected writeFile(file: File<FileData>) {
+	protected writeFile(file: File<FileData, LoadOpts>) {
 		mkdirSync(dirname(file.path), { recursive: true });
 		writeFileSync(file.path, JSON.stringify(file.data, null, '\t'), 'utf-8');
 		this.emit('write', file.path, file.data);
@@ -343,7 +349,7 @@ export class Manager<
 		file.data = this.fileSchema.parse(config) as FileData;
 		this.writeFile(file);
 		this.replace(this.defaults);
-		for (const file of this.files.values()) this.merge(file.data as PartialRecursive<In>);
+		for (const file of this._files.values()) this.merge(file.data as PartialRecursive<In>);
 	}
 
 	/**
@@ -383,7 +389,7 @@ export class Manager<
 	 * the most recently loaded file of that type, or the path `loadDefaults` would use for it.
 	 */
 	public findPath(type?: FileType): string {
-		const loaded = this.files
+		const loaded = this._files
 			.values()
 			.filter(file => (!type || file.type == type) && !file.wasIncluded)
 			.map(file => file.path)
@@ -404,12 +410,12 @@ export class Manager<
 	}
 
 	reloadFiles(options: Partial<LoadOpts> = {}) {
-		const files = this.files
+		const files = this._files
 			.values()
 			.filter(file => !file.wasIncluded)
 			.toArray();
 
-		this.files.clear();
+		this._files.clear();
 		this.replace(this.defaults);
 		for (const file of files) {
 			this.loadFile(file.path, { ...options, [kInit]: { type: file.type, auto: file.auto } });
