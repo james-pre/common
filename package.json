@@ -26,7 +26,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/james-pre/config.git"
+		"url": "git+https://github.com/james-pre/config"
 	},
 	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
 	"license": "LGPL-3.0-or-later",
