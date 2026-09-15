@@ -26,14 +26,14 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/james-pre/@james-pre/config.git"
+		"url": "git+https://github.com/james-pre/config.git"
 	},
 	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
 	"license": "LGPL-3.0-or-later",
 	"bugs": {
-		"url": "https://github.com/james-pre/@james-pre/config/issues"
+		"url": "https://github.com/james-pre/config/issues"
 	},
-	"homepage": "https://github.com/james-pre/@james-pre/config#readme",
+	"homepage": "https://github.com/james-pre/config#readme",
 	"engines": {
 		"node": ">=22.0.0"
 	},
