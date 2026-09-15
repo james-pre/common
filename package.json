@@ -1,6 +1,6 @@
 {
 	"name": "@james-pre/config",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Manage configuration files",
 	"funding": {
 		"type": "individual",
