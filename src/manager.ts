@@ -178,8 +178,8 @@ function defaultsOf(schema: z.ZodType): unknown {
  * Manager for configuration files
  */
 export class Manager<
-	LoadOpts extends LoadOptions,
-	Schema extends z.ZodObject = z.ZodObject,
+	Schema extends z.ZodObject,
+	LoadOpts extends LoadOptions = LoadOptions,
 	out In extends z.input<Schema> = z.input<Schema>,
 	out FileData = z.output<ReturnType<typeof z.deepPartial<Schema>>>,
 > extends EventEmitter<{
@@ -220,6 +220,16 @@ export class Manager<
 		);
 		this.data = this.schema.parse(this.defaults);
 	}
+
+	/**
+	 * Narrow the type of this manager's load options
+	 */
+	public $loadOptions<O extends object>(): Manager<Schema, LoadOpts & O, In, FileData> {
+		this.$assertLoadOptions<O>();
+		return this;
+	}
+
+	public $assertLoadOptions<O extends object>(): asserts this is Manager<Schema, LoadOpts & O, In, FileData> {}
 
 	/**
 	 * A fresh config with only the schema's defaults applied.
