@@ -1,5 +1,5 @@
 {
-	"name": "confium",
+	"name": "@james-pre/config",
 	"version": "0.0.1",
 	"description": "Manage configuration files",
 	"funding": {
@@ -25,14 +25,25 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/james-pre/confium.git"
+		"url": "git+https://github.com/james-pre/@james-pre/config.git"
 	},
 	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
 	"license": "LGPL-3.0-or-later",
 	"bugs": {
-		"url": "https://github.com/james-pre/confium/issues"
+		"url": "https://github.com/james-pre/@james-pre/config/issues"
 	},
-	"homepage": "https://github.com/james-pre/confium#readme",
+	"homepage": "https://github.com/james-pre/@james-pre/config#readme",
+	"engines": {
+		"node": ">=22.0.0"
+	},
+	"peerDependencies": {
+		"utilium": "^3.7.0",
+		"zod": "^4.5.0"
+	},
+	"publishConfig": {
+		"provenance": true,
+		"access": "public"
+	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@types/node": "^24.7.0",
@@ -43,9 +54,6 @@
 		"typescript": "^6.0.2",
 		"typescript-eslint": "^8.58.0"
 	},
-	"engines": {
-		"node": ">=22.0.0"
-	},
 	"prettier": {
 		"singleQuote": true,
 		"useTabs": true,
@@ -54,9 +62,5 @@
 		"printWidth": 120,
 		"arrowParens": "avoid",
 		"experimentalOperatorPosition": "start"
-	},
-	"peerDependencies": {
-		"utilium": "^3.7.0",
-		"zod": "^4.5.0"
 	}
 }
