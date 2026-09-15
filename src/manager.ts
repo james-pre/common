@@ -289,9 +289,8 @@ export class Manager<
 			path,
 		});
 
-		this.merge(file as PartialRecursive<In>);
-
 		this.emit('load', path, file);
+		this.merge(file as PartialRecursive<In>);
 
 		if (canInclude(this.options, file))
 			for (const include of file.include ?? []) {
