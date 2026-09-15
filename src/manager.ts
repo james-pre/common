@@ -194,7 +194,11 @@ export class Manager<
 	public readonly schema: z.ZodObject<Shape>;
 	public readonly fileSchema: ReturnType<typeof z.deepPartial<z.ZodObject<Shape>>>;
 
-	protected files: Map<string, File<FileData>> = new Map();
+	protected readonly files: Map<string, File<FileData>> = new Map();
+
+	public get filePaths(): MapIterator<string> {
+		return this.files.keys();
+	}
 
 	public readonly data: z.output<z.ZodObject<Shape>>;
 
