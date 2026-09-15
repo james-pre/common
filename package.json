@@ -63,5 +63,6 @@
 		"printWidth": 120,
 		"arrowParens": "avoid",
 		"experimentalOperatorPosition": "start"
-	}
+	},
+	"sideEffects": false
 }
