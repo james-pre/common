@@ -20,8 +20,8 @@
 	"scripts": {
 		"format:check": "prettier --check .",
 		"format": "prettier --write .",
-		"build": "tsc",
-		"lint": "tsc --noEmit && eslint src",
+		"build": "tsc -b",
+		"lint": "tsc -b --noEmit && eslint src",
 		"prepublishOnly": "npx tsc"
 	},
 	"repository": {

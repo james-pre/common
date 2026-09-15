@@ -10,12 +10,13 @@ import * as z from 'zod';
 export type FileType = 'system' | 'user' | 'local';
 
 /** Information about a loaded config file */
-interface File<Value> {
+interface File<Value, Options extends LoadOptions = LoadOptions> {
 	path: string;
 	wasIncluded: boolean;
 	data: Value;
 	type: FileType;
 	auto: boolean;
+	options: Partial<Options>;
 }
 
 /**
@@ -32,24 +33,24 @@ export interface LoadOptions {
 	/**
 	 * If enabled, the config file will still be loaded if it does not match the schema.
 	 */
-	loose?: boolean;
+	loose: boolean;
 
 	/**
 	 * If enabled, the config file will be skipped if it does not exist.
 	 */
-	optional?: boolean;
+	optional: boolean;
 
 	/**
 	 * If enabled, an empty config file will be created when it does not exist.
 	 * Included files are never created.
 	 */
-	create?: boolean;
+	create: boolean;
 
 	/**
 	 * Used to mark files that are included, auto-loaded, etc.
 	 * @internal
 	 */
-	[kInit]?: FileLoadInit;
+	[kInit]: FileLoadInit;
 }
 
 const kInit = Symbol.for('LoadOptions:init');
@@ -177,13 +178,13 @@ function defaultsOf(schema: z.ZodType): unknown {
  * Manager for configuration files
  */
 export class Manager<
-	Shape extends Readonly<Record<string, z.ZodType>>,
 	LoadOpts extends LoadOptions = LoadOptions,
+	Shape extends Readonly<Record<string, z.ZodType>> = Readonly<Record<string, z.ZodType>>,
 	out In extends z.input<z.ZodObject<Shape>> = z.input<z.ZodObject<Shape>>,
 	out FileData = z.output<ReturnType<typeof z.deepPartial<z.ZodObject<Shape>>>>,
 > extends EventEmitter<{
-	load: [path: string, config: FileData];
-	post_load: [path: string, config: FileData];
+	load: [path: string, config: FileData, options: Partial<LoadOpts>];
+	post_load: [path: string, config: FileData, options: Partial<LoadOpts>];
 	load_error: [path: string, stage: 'read' | 'create' | 'parse', error: Error];
 	create: [path: string];
 	change: [];
@@ -245,7 +246,7 @@ export class Manager<
 		this.emit('change');
 	}
 
-	loadFile(path: string, options: LoadOpts) {
+	loadFile(path: string, options: Partial<LoadOpts>) {
 		if (this.files.has(path)) return;
 
 		let json;
@@ -287,9 +288,10 @@ export class Manager<
 			...(options[kInit] || {}),
 			data: file,
 			path,
+			options,
 		});
 
-		this.emit('load', path, file);
+		this.emit('load', path, file, options);
 		this.merge(file as PartialRecursive<In>);
 
 		if (canInclude(this.options, file))
@@ -302,7 +304,7 @@ export class Manager<
 				});
 			}
 
-		this.emit('post_load', path, file);
+		this.emit('post_load', path, file, options);
 	}
 
 	/** Get the entry for `path`, adding one for a file that has not been loaded */
@@ -316,6 +318,7 @@ export class Manager<
 			type: typeFromPath(path),
 			auto: false,
 			wasIncluded: false,
+			options: {},
 		};
 		this.files.set(path, file);
 		return file;
@@ -365,7 +368,7 @@ export class Manager<
 	/**
 	 * Load the files from `defaultPaths`. Missing files are skipped unless `options` says otherwise.
 	 */
-	loadDefaults(options: LoadOpts) {
+	loadDefaults(options: Partial<LoadOpts> = {}) {
 		for (const { path, type } of this.defaultPaths) {
 			this.loadFile(path, { optional: true, ...options, [kInit]: { type, auto: true } });
 		}
@@ -396,7 +399,7 @@ export class Manager<
 		this.updateFile(this.findPath(type), config);
 	}
 
-	reloadFiles(options: LoadOpts) {
+	reloadFiles(options: Partial<LoadOpts> = {}) {
 		const files = this.files
 			.values()
 			.filter(file => !file.wasIncluded)
