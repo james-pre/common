@@ -3,6 +3,7 @@ import type { Command } from 'commander';
 import { styleText } from 'node:util';
 import { isLingering } from './linger.js';
 import type { ActiveState, InstallSource, Service } from './service.js';
+import { ensureServiceUser, removeServiceUser, type ServiceUserOptions } from './users.js';
 
 export interface ServiceCommandOptions {
 	/** @default 'service' */
@@ -14,6 +15,11 @@ export interface ServiceCommandOptions {
 	service: (user: boolean | undefined) => Service;
 	/** What `install` installs, which leaves out `install` when absent. */
 	source?: (service: Service) => InstallSource;
+	/**
+	 * The user the service runs as, which `install` creates when it doesn't exist.
+	 * When given, `user` is added to manage it, and `uninstall` can remove it.
+	 */
+	serviceUser?: (service: Service) => ServiceUserOptions | undefined;
 }
 
 const stateColors: Partial<Record<ActiveState, 'green' | 'red'>> = { active: 'green', failed: 'red' };
@@ -49,38 +55,76 @@ export function serviceCommand<C extends Command>(parent: C, options: ServiceCom
 		return svc;
 	}
 
+	/** Create or update the service's user, if it has one. */
+	function setupUser(svc: Service, overrides: Partial<ServiceUserOptions> = {}): void {
+		const userOptions = options.serviceUser?.(svc);
+		if (!userOptions) return;
+
+		const { user, created, added } = ensureServiceUser({ ...userOptions, ...overrides });
+		if (created) console.log('Created system user', styleText('bold', user.name));
+		for (const member of added)
+			console.log('Added', member, 'to the', user.name, 'group, effective on their next login');
+	}
+
+	const memberOption = () => command.createOption('-m, --member <users...>', "add users to the service user's group");
+
 	if (options.source) {
 		const { source } = options;
-		command
+		const install = command
 			.command('install')
 			.description('Install the service')
 			.option('-e, --enable', 'start the service on boot')
 			.option('-s, --start', 'start the service now')
-			.option('-r, --replace', 'replace the service if it is already installed')
-			.action(opts => {
-				const svc = writableService();
-				svc.install(source(svc), opts);
-				console.log('Installed', styleText('bold', svc.unit), 'to', svc.path);
+			.option('-r, --replace', 'replace the service if it is already installed');
 
-				if (svc.options.user && opts.enable && !isLingering())
-					console.warn(
-						styleText(
-							'yellow',
-							`${svc.unit} will not start until you log in. To start it on boot, run: loginctl enable-linger`
-						)
-					);
+		if (options.serviceUser) install.addOption(memberOption());
+
+		install.action((opts: { enable?: true; start?: true; replace?: true; member?: string[] }) => {
+			const svc = writableService();
+			setupUser(svc, { members: opts.member });
+			svc.install(source(svc), opts);
+			console.log('Installed', styleText('bold', svc.unit), 'to', svc.path);
+
+			if (svc.options.user && opts.enable && !isLingering())
+				console.warn(
+					styleText(
+						'yellow',
+						`${svc.unit} will not start until you log in. To start it on boot, run: loginctl enable-linger`
+					)
+				);
+		});
+	}
+
+	if (options.serviceUser) {
+		const { serviceUser } = options;
+		command
+			.command('user')
+			.description("Create the service's user, or update it")
+			.option('--home <path>', "the user's home directory")
+			.option('--shell <path>', "the user's login shell")
+			.addOption(memberOption())
+			.action((opts: { home?: string; shell?: string; member?: string[] }) => {
+				const svc = writableService();
+				if (!serviceUser(svc)) command.error(`error: ${svc.unit} does not run as its own user`);
+				setupUser(svc, { home: opts.home, shell: opts.shell, members: opts.member });
 			});
 	}
 
-	command
+	const uninstall = command
 		.command('uninstall')
 		.description('Stop and remove the service')
-		.option('-k, --keep-running', 'leave the service running')
-		.action(opts => {
-			const svc = writableService();
-			if (svc.uninstall({ stop: !opts.keepRunning })) console.log('Uninstalled', styleText('bold', svc.unit));
-			else console.log(svc.unit, 'is not installed');
-		});
+		.option('-k, --keep-running', 'leave the service running');
+
+	if (options.serviceUser) uninstall.option('--remove-user', "also delete the service's user");
+
+	uninstall.action((opts: { keepRunning?: true; removeUser?: true }) => {
+		const svc = writableService();
+		if (svc.uninstall({ stop: !opts.keepRunning })) console.log('Uninstalled', styleText('bold', svc.unit));
+		else console.log(svc.unit, 'is not installed');
+
+		const name = opts.removeUser && options.serviceUser?.(svc)?.name;
+		if (name && removeServiceUser(name)) console.log('Deleted system user', styleText('bold', name));
+	});
 
 	command
 		.command('status')
