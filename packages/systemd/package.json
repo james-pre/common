@@ -37,6 +37,14 @@
 	"os": [
 		"linux"
 	],
+	"peerDependencies": {
+		"commander": "^15.0.0"
+	},
+	"peerDependenciesMeta": {
+		"commander": {
+			"optional": true
+		}
+	},
 	"publishConfig": {
 		"provenance": true,
 		"access": "public"

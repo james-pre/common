@@ -35,8 +35,14 @@
 		"node": ">=22.0.0"
 	},
 	"peerDependencies": {
+		"commander": "^15.0.0",
 		"utilium": "^3.7.0",
 		"zod": "^4.5.0"
+	},
+	"peerDependenciesMeta": {
+		"commander": {
+			"optional": true
+		}
 	},
 	"publishConfig": {
 		"provenance": true,

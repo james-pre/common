@@ -8,7 +8,8 @@
 		"declaration": true,
 		"isolatedModules": true,
 		"strict": true,
-		"types": ["node"]
+		"typeRoots": ["./node_modules/@types", "./types"],
+		"types": ["node", "commander"]
 	},
 	"exclude": ["node_modules"],
 	"files": [],

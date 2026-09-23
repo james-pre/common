@@ -28,3 +28,18 @@ A unit can also be installed from its text (`{ text }`), or linked where it is (
 Linked system units are labeled for SELinux automatically, since systemd can not read them otherwise.
 
 User services only run while their user is logged in, unless lingering is enabled with `setLinger(true)`.
+
+## CLI
+
+`@james-pre/systemd/cli` adds a `service` command to a [Commander](https://github.com/tj/commander.js) program, with `install`, `uninstall`, `status`, `start`, `stop`, `restart`, `enable`, and `disable`:
+
+```ts
+import { serviceCommand } from '@james-pre/systemd/cli';
+
+serviceCommand(program, {
+	service: user => new Service('example', { user }),
+	source: () => ({ link: '/opt/example/example.service' }),
+});
+```
+
+Commander is an optional peer dependency, needed only for the CLI.
