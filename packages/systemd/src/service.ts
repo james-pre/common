@@ -5,6 +5,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { relabel } from './selinux.js';
 import { daemonReload, systemctl, type ManagerOptions, type Result } from './systemctl.js';
 import { stringify, type UnitFile } from './unit.js';
+import { styleText } from 'node:util';
 
 /** Where units are installed for a service manager. */
 export function unitDirectory(options: ManagerOptions = {}): string {
@@ -194,6 +195,15 @@ export class Service {
 			exitStatus: integer(values.ExecMainStatus),
 			memory: integer(values.MemoryCurrent),
 		};
+	}
+
+	public shortStatus(): string {
+		const { load, active, enabled } = this.status();
+
+		if (load == 'not-found') return styleText('dim', 'not found');
+
+		const color = active == 'failed' ? 'red' : active == 'active' ? 'green' : 'yellow';
+		return `${enabled}, ${styleText(color, active)}`;
 	}
 
 	public start(): void {
