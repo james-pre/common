@@ -35,7 +35,7 @@ jobs:
               run: npm install
 
             - name: Build
-              run: npx typedoc
+              run: npx tsc -b && npx typedoc
 
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
@@ -61,11 +61,26 @@ jobs:
                   node-version: latest
                   registry-url: https://registry.npmjs.org/
 
+            - name: Use latest npm version
+              run: npm install -g npm@latest
+
             - name: Install dependencies
-              run: npm install
+              run: npm ci
+
+            - name: Resolve package
+              id: resolve
+              run: |
+                  PACKAGE="$(echo ${{ github.event.release.tag_name }} | sed 's/@.*$//')"
+                  if [ ! -d "packages/$PACKAGE" ]; then
+                      echo "Package directory not found"
+                      exit 1
+                  fi
+                  echo "path=packages/$PACKAGE" >> $GITHUB_OUTPUT
+                  echo "::debug::Resolved package to 'packages/$PACKAGE'"
 
             - name: Build
-              run: npx tsc
+              run: npx tsc -b
 
             - name: Publish
               run: npm publish --access=public --provenance
+              working-directory: ${{ steps.resolve.outputs.path }}

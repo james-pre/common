@@ -1,59 +1,49 @@
 {
-	"name": "@james-pre/config",
-	"version": "1.1.0",
-	"description": "Manage configuration files",
+	"name": "@james-pre/root",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Common packages",
+	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
+	"license": "LGPL-3.0-or-later",
 	"funding": {
 		"type": "individual",
 		"url": "https://github.com/sponsors/james-pre"
 	},
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"type": "module",
-	"exports": {
-		".": "./dist/index.js",
-		"./*": "./dist/*.js"
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/james-pre/common.git"
 	},
-	"files": [
-		"dist",
-		"README.md"
+	"homepage": "https://github.com/james-pre/common#readme",
+	"bugs": {
+		"url": "https://github.com/james-pre/common/issues"
+	},
+	"type": "module",
+	"workspaces": [
+		"packages/*"
 	],
 	"scripts": {
 		"format:check": "prettier --check .",
 		"format": "prettier --write .",
 		"build": "tsc -b",
-		"lint": "tsc -b --noEmit && eslint src",
-		"prepublishOnly": "npx tsc"
+		"watch": "tsc -b -w",
+		"lint": "tsc -b --noEmit && eslint packages/*/src",
+		"clean": "rm -rf packages/*/dist packages/*/tsconfig.tsbuildinfo docs"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/james-pre/config"
-	},
-	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
-	"license": "LGPL-3.0-or-later",
-	"bugs": {
-		"url": "https://github.com/james-pre/config/issues"
-	},
-	"homepage": "https://github.com/james-pre/config#readme",
 	"engines": {
 		"node": ">=22.0.0"
 	},
-	"peerDependencies": {
-		"utilium": "^3.7.0",
-		"zod": "^4.5.0"
-	},
-	"publishConfig": {
-		"provenance": true,
-		"access": "public"
-	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@james-pre/config": "workspace:*",
 		"@types/node": "^24.7.0",
 		"eslint": "^10.1.0",
 		"globals": "^17.4.0",
 		"prettier": "^3.2.5",
 		"typedoc": "^0.28.18",
 		"typescript": "^6.0.2",
-		"typescript-eslint": "^8.58.0"
+		"typescript-eslint": "^8.58.0",
+		"utilium": "^3.7.0",
+		"zod": "^4.5.0"
 	},
 	"prettier": {
 		"singleQuote": true,
@@ -63,6 +53,5 @@
 		"printWidth": 120,
 		"arrowParens": "avoid",
 		"experimentalOperatorPosition": "start"
-	},
-	"sideEffects": false
+	}
 }

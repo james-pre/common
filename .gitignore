@@ -7,4 +7,6 @@ tmp
 !.github
 !.vscode
 !.gitignore
+!.npmrc
+!.prettierignore
 *.tsbuildinfo
