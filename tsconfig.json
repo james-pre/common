@@ -13,5 +13,5 @@
 	},
 	"exclude": ["node_modules"],
 	"files": [],
-	"references": [{ "path": "./packages/config" }, { "path": "./packages/systemd" }]
+	"references": [{ "path": "./packages/config" }, { "path": "./packages/systemd" }, { "path": "./packages/monorepo" }]
 }

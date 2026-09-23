@@ -67,19 +67,14 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Resolve package
-              id: resolve
-              run: |
-                  PACKAGE="$(echo ${{ github.event.release.tag_name }} | sed 's/@.*$//')"
-                  if [ ! -d "packages/$PACKAGE" ]; then
-                      echo "Package directory not found"
-                      exit 1
-                  fi
-                  echo "path=packages/$PACKAGE" >> $GITHUB_OUTPUT
-                  echo "::debug::Resolved package to 'packages/$PACKAGE'"
-
             - name: Build
               run: npx tsc -b
+
+            - name: Resolve package
+              id: resolve
+              run: node packages/monorepo/dist/main.js release resolve "$TAG"
+              env:
+                  TAG: ${{ github.event.release.tag_name }}
 
             - name: Publish
               run: npm publish --access=public --provenance

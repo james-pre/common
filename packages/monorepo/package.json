@@ -1,0 +1,50 @@
+{
+	"name": "@james-pre/monorepo",
+	"version": "0.1.0",
+	"description": "Tools for managing monorepos, like releasing their packages",
+	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
+	"license": "LGPL-3.0-or-later",
+	"funding": {
+		"type": "individual",
+		"url": "https://github.com/sponsors/james-pre"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/james-pre/common.git",
+		"directory": "packages/monorepo"
+	},
+	"homepage": "https://github.com/james-pre/common/tree/main/packages/monorepo#readme",
+	"bugs": {
+		"url": "https://github.com/james-pre/common/issues"
+	},
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"bin": {
+		"monorepo": "dist/main.js",
+		"repo": "dist/main.js",
+		"mr": "dist/main.js"
+	},
+	"exports": {
+		".": "./dist/index.js",
+		"./*": "./dist/*.js"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"scripts": {
+		"build": "tsc"
+	},
+	"engines": {
+		"node": ">=22.14.0"
+	},
+	"dependencies": {
+		"commander": "^15.0.0"
+	},
+	"publishConfig": {
+		"provenance": true,
+		"access": "public"
+	},
+	"sideEffects": false
+}
