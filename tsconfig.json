@@ -12,5 +12,5 @@
 	},
 	"exclude": ["node_modules"],
 	"files": [],
-	"references": [{ "path": "./packages/config" }]
+	"references": [{ "path": "./packages/config" }, { "path": "./packages/systemd" }]
 }

@@ -1,0 +1,13 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"composite": true,
+		"rootDir": "src",
+		"outDir": "dist"
+	},
+	"typedocOptions": {
+		"entryPoints": ["src/index.ts"]
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules"]
+}

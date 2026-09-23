@@ -1,0 +1,45 @@
+{
+	"name": "@james-pre/systemd",
+	"version": "0.1.0",
+	"description": "Install and manage systemd services",
+	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
+	"license": "LGPL-3.0-or-later",
+	"funding": {
+		"type": "individual",
+		"url": "https://github.com/sponsors/james-pre"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/james-pre/common.git",
+		"directory": "packages/systemd"
+	},
+	"homepage": "https://github.com/james-pre/common/tree/main/packages/systemd#readme",
+	"bugs": {
+		"url": "https://github.com/james-pre/common/issues"
+	},
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": "./dist/index.js",
+		"./*": "./dist/*.js"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"scripts": {
+		"build": "tsc"
+	},
+	"engines": {
+		"node": ">=22.0.0"
+	},
+	"os": [
+		"linux"
+	],
+	"publishConfig": {
+		"provenance": true,
+		"access": "public"
+	},
+	"sideEffects": false
+}
