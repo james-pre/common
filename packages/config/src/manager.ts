@@ -6,6 +6,7 @@ import { dirname, join, resolve, sep } from 'node:path';
 import type { FlattenKeys, GetByString, PartialRecursive } from 'utilium';
 import { deepAssign, getByString, memoize, setByString } from 'utilium';
 import * as z from 'zod';
+import * as defaults from './defaults.js';
 
 export type FileType = 'system' | 'user' | 'local';
 
@@ -103,78 +104,6 @@ function withExtension(path: string): string {
 }
 
 /**
- * Remove `.default()` and `.prefault()` from a schema and everything nested within it.
- */
-function stripDefaults(schema: z.ZodType): z.ZodType {
-	const def = schema._zod.def as any;
-
-	switch (def.type) {
-		case 'default':
-		case 'prefault':
-			return stripDefaults(def.innerType);
-		case 'object':
-			return z.core.clone(schema, {
-				...def,
-				shape: Object.fromEntries(
-					Object.entries<z.ZodType>(def.shape).map(([key, member]) => [key, stripDefaults(member)])
-				),
-				catchall: def.catchall && stripDefaults(def.catchall),
-			});
-		case 'array':
-			return z.core.clone(schema, { ...def, element: stripDefaults(def.element) });
-		case 'record':
-		case 'map':
-		case 'set':
-			return z.core.clone(schema, { ...def, valueType: stripDefaults(def.valueType) });
-		case 'union':
-			return z.core.clone(schema, { ...def, options: (def.options as z.ZodType[]).map(stripDefaults) });
-		case 'tuple':
-			return z.core.clone(schema, {
-				...def,
-				items: (def.items as z.ZodType[]).map(stripDefaults),
-				rest: def.rest && stripDefaults(def.rest),
-			});
-		case 'optional':
-		case 'nullable':
-		case 'readonly':
-		case 'nonoptional':
-		case 'catch':
-			return z.core.clone(schema, { ...def, innerType: stripDefaults(def.innerType) });
-		default:
-			return schema;
-	}
-}
-
-/**
- * Compute a schema's default value from `.default()` on it and on anything nested within it.
- * Members without a default are left out, so the result is not necessarily a complete config.
- */
-function defaultsOf(schema: z.ZodType): unknown {
-	const def = schema._zod.def as any;
-
-	switch (def.type) {
-		case 'default':
-		case 'prefault':
-		case 'catch':
-			try {
-				return schema.parse(undefined);
-			} catch {
-				return defaultsOf(def.innerType);
-			}
-		case 'object': {
-			const value: Record<string, unknown> = {};
-			for (const [key, member] of Object.entries<z.ZodType>(def.shape)) {
-				const inner = defaultsOf(member);
-				if (inner !== undefined) value[key] = inner;
-			}
-			return Object.keys(value).length ? value : undefined;
-		}
-		default:
-			return def.innerType ? defaultsOf(def.innerType) : undefined;
-	}
-}
-
-/**
  * Manager for configuration files
  */
 export class Manager<
@@ -216,7 +145,7 @@ export class Manager<
 		super({ captureRejections: true });
 
 		this.fileSchema = z.deepPartial(
-			stripDefaults(z.object(options.enableIncludes ? { ...schema.shape, include } : schema.shape)) as Schema
+			defaults.strip(z.object(options.enableIncludes ? { ...schema.shape, include } : schema.shape)) as Schema
 		);
 		this.data = this.schema.parse(this.defaults);
 	}
@@ -235,7 +164,7 @@ export class Manager<
 	 * A fresh config with only the schema's defaults applied.
 	 */
 	public get defaults(): z.output<Schema> & In {
-		return structuredClone(defaultsOf(this.schema) ?? {}) as z.output<Schema> & In;
+		return structuredClone(defaults.of(this.schema) ?? {}) as z.output<Schema> & In;
 	}
 
 	public get<const K extends string | number = FlattenKeys<z.output<Schema>>>(
@@ -256,6 +185,7 @@ export class Manager<
 	 */
 	public merge(config: PartialRecursive<In>) {
 		deepAssign(this.data as object, structuredClone(config) as object, { replaceArrays: true });
+		defaults.with(this.schema, this.data);
 		this.emit('change');
 	}
 
