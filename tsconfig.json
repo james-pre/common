@@ -13,5 +13,14 @@
 	},
 	"exclude": ["node_modules"],
 	"files": [],
-	"references": [{ "path": "./packages/config" }, { "path": "./packages/systemd" }, { "path": "./packages/monorepo" }]
+	"references": [
+		{ "path": "./packages/config" },
+		{ "path": "./packages/systemd" },
+		{ "path": "./packages/monorepo" }
+	],
+	"typedocOptions": {
+		"entryPointStrategy": "packages",
+		"entryPoints": ["packages/*"],
+		"out": "docs"
+	}
 }
