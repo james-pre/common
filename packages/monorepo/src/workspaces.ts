@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-import { existsSync, globSync, readFileSync } from 'node:fs';
+import { existsSync, globSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 
 export interface PackageJSON {
@@ -7,11 +7,29 @@ export interface PackageJSON {
 	version?: string;
 	private?: boolean;
 	workspaces?: string[] | { packages?: string[] };
+	dependencies?: Record<string, string>;
+	devDependencies?: Record<string, string>;
+	peerDependencies?: Record<string, string>;
+	optionalDependencies?: Record<string, string>;
 	[key: string]: unknown;
 }
 
+export const dependencyFields = [
+	'dependencies',
+	'devDependencies',
+	'peerDependencies',
+	'optionalDependencies',
+] as const;
+
 export function readPackage(dir: string): PackageJSON {
 	return JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as PackageJSON;
+}
+
+/** Write the `package.json` in `dir`, keeping the indentation of the existing one. */
+export function writePackage(dir: string, pkg: PackageJSON): void {
+	const path = join(dir, 'package.json');
+	const indent = /^[ \t]+(?=")/m.exec(readFileSync(path, 'utf8'))?.[0] ?? '\t';
+	writeFileSync(path, JSON.stringify(pkg, null, indent) + '\n');
 }
 
 export interface Workspace {
