@@ -41,6 +41,7 @@
 		"commander": "^15.0.0",
 		"eslint": "^10.1.0",
 		"globals": "^17.4.0",
+		"ioium": "^1.11.1",
 		"prettier": "^3.2.5",
 		"typedoc": "^0.28.18",
 		"typescript": "^6.0.2",
