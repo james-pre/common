@@ -5,18 +5,18 @@ A small library for translations, with types for each translation key and the re
 The core works cross-host:
 
 ```ts
-import { extendLocale, text, useLocale } from '@james-pre/locales';
+import * as locales from '@james-pre/locales';
 
-extendLocale('en', { duck: { name: 'Duck Name', greeting: 'Hello {name}!' } });
-extendLocale('fr', { duck: { name: 'Nom du canard' } });
+locales.extend('en', { duck: { name: 'Duck Name', greeting: 'Hello {name}!' } });
+locales.extend('fr', { duck: { name: 'Nom du canard' } });
 
-useLocale('fr');
+locales.use('fr');
 
-text('duck.name'); // 'Nom du canard'
-text('duck.greeting', { name: 'Jerry' }); // 'Hello Jerry!', from the fallback locale (`en`)
+locales.text('duck.name'); // 'Nom du canard'
+locales.text('duck.greeting', { name: 'Jerry' }); // 'Hello Jerry!', from the fallback locale (`en`)
 ```
 
-`resolveLocale('en-US')` finds the best loaded locale for a language tag, and `countryName`, `dateField`, `conjoin`, `disjoin`, and `currentMonthNames` follow the current locale.
+`locales.resolve('en-US')` finds the best loaded locale for a language tag, and `countryName`, `dateField`, `conjoin`, `disjoin`, and `monthNames` follow the current locale.
 
 ## Node.js
 

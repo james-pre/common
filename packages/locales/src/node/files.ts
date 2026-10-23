@@ -2,14 +2,14 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { deepAssign } from 'utilium';
-import { extendLocale, type LocaleData } from '../data.js';
-import { fallbackLocale } from '../locale.js';
+import { extend, type Data } from '../data.js';
+import { fallback } from '../locale.js';
 
 /**
  * Read every `<locale>.json` file in a directory, without loading them.
  */
-export function read(dir: string): Record<string, LocaleData> {
-	const locales: Record<string, LocaleData> = {};
+export function read(dir: string): Record<string, Data> {
+	const locales: Record<string, Data> = {};
 
 	for (const entry of readdirSync(dir)) {
 		if (!entry.endsWith('.json')) continue;
@@ -25,15 +25,15 @@ export function read(dir: string): Record<string, LocaleData> {
  */
 export function load(dir: string): string[] {
 	const locales = read(dir);
-	for (const [locale, data] of Object.entries(locales)) extendLocale(locale, data);
+	for (const [locale, data] of Object.entries(locales)) extend(locale, data);
 	return Object.keys(locales);
 }
 
 /**
  * Merge several locales into a single object, applying the reference locale last.
  */
-export function merge(locales: Record<string, LocaleData>, reference: string = fallbackLocale): LocaleData {
-	const merged: LocaleData = {};
+export function merge(locales: Record<string, Data>, reference: string = fallback): Data {
+	const merged: Data = {};
 	for (const [locale, data] of Object.entries(locales)) {
 		if (locale != reference) deepAssign(merged, data);
 	}

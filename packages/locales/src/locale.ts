@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 import * as io from 'ioium';
 import { getByString } from 'utilium';
-import { loadedLocales, type LocaleKey, type LocaleKeys, type LocaleValue } from './data.js';
+import { loaded, type Key, type Keys, type Value } from './data.js';
 
 /** The locale `text` translates to */
-export let currentLocale = 'en';
+export let current = 'en';
 
 /** The locale `text` uses for translations missing from the current locale */
-export let fallbackLocale = 'en';
+export let fallback = 'en';
 
 let regionNames: Intl.DisplayNames;
 let dateFields: Intl.DisplayNames;
@@ -15,7 +15,7 @@ let conjunction: Intl.ListFormat;
 let disjunction: Intl.ListFormat;
 
 /** The names of the months in the current locale, starting with January */
-export let currentMonthNames: string[];
+export let monthNames: string[];
 
 function useFormatters(locale: string): void {
 	regionNames = new Intl.DisplayNames(locale, { type: 'region' });
@@ -24,21 +24,21 @@ function useFormatters(locale: string): void {
 	disjunction = new Intl.ListFormat(locale, { style: 'long', type: 'disjunction' });
 
 	const formatter = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' });
-	currentMonthNames = Array.from({ length: 12 }, (_, month) => formatter.format(new Date(Date.UTC(2000, month, 1))));
+	monthNames = Array.from({ length: 12 }, (_, month) => formatter.format(new Date(Date.UTC(2000, month, 1))));
 }
 
-useFormatters(currentLocale);
+useFormatters(current);
 
 /** Start translating to a loaded locale. */
-export function useLocale(locale: string): void {
-	if (!(locale in loadedLocales)) throw new Error('Locale is not available: ' + locale);
-	currentLocale = locale;
+export function use(locale: string): void {
+	if (!(locale in loaded)) throw new Error('Locale is not available: ' + locale);
+	current = locale;
 	useFormatters(locale);
 }
 
 /** Set the locale used for missing translations, which does not need to be loaded yet. */
-export function useFallbackLocale(locale: string): void {
-	fallbackLocale = locale;
+export function useFallback(locale: string): void {
+	fallback = locale;
 }
 
 /** The name of a country or region in the current locale, from its ISO 3166 code */
@@ -84,7 +84,7 @@ export interface ReplacementOptions {
 }
 
 export type Replacements<K extends string> = ReplacementOptions
-	& (K extends LocaleKey ? LocaleKeys[K & LocaleKey] : Record<string, LocaleValue>);
+	& (K extends Key ? Keys[K & Key] : Record<string, Value>);
 
 type ReplacementsArgs<K extends string> =
 	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -99,14 +99,14 @@ const replacementPattern = /\{(\w+)\}/g;
  * text(`example.translation.key.${dynamicPart}`, { a: 1, b: 2 });
  * ```
  */
-export function text<const K extends string = LocaleKey>(key: K, ...args: ReplacementsArgs<K>): string {
+export function text<const K extends string = Key>(key: K, ...args: ReplacementsArgs<K>): string {
 	const values: Record<string, any> & ReplacementOptions = Object.assign(Object.create(null), args[0]);
 
-	let translation: string | object | undefined = getByString(loadedLocales[currentLocale], key) || values.$default;
+	let translation: string | object | undefined = getByString(loaded[current], key) || values.$default;
 
-	if (!translation && currentLocale != fallbackLocale) {
-		io.warn(`Missing translation in ${currentLocale}: ` + key);
-		translation = getByString(loadedLocales[fallbackLocale], key);
+	if (!translation && current != fallback) {
+		io.warn(`Missing translation in ${current}: ` + key);
+		translation = getByString(loaded[fallback], key);
 	}
 
 	if (!translation) {

@@ -4,7 +4,7 @@ import * as io from 'ioium/node';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-import { fallbackLocale } from '../locale.js';
+import { fallback } from '../locale.js';
 import { merge, read } from './files.js';
 import { generateTypes } from './typegen.js';
 
@@ -15,7 +15,7 @@ Generate types for the translation keys of each package directory (default: .)
 Options:
     -d, --directory <path>    The directory in each package with its translations (default: locales)
     -o, --output <path>       Where to write the generated module, relative to each package (default: src/.locale.ts)
-    -r, --reference <locale>  The locale whose translations take precedence (default: ${fallbackLocale})
+    -r, --reference <locale>  The locale whose translations take precedence (default: ${fallback})
     -v, --verbose             Enable verbose output
     -h, --help                Show this help message
 `;
@@ -27,7 +27,7 @@ try {
 		options: {
 			directory: { type: 'string', short: 'd', default: 'locales' },
 			output: { type: 'string', short: 'o', default: 'src/.locale.ts' },
-			reference: { type: 'string', short: 'r', default: fallbackLocale },
+			reference: { type: 'string', short: 'r', default: fallback },
 			verbose: { type: 'boolean', short: 'v', default: false },
 			help: { type: 'boolean', short: 'h', default: false },
 		},

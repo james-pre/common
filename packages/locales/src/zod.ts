@@ -21,8 +21,8 @@ export interface ZodInfo {
 	 * 	type: z.literal(['mallard', 'gadwall', 'pintail']).register(locales.zod, { key: 'duck.type', prefix: 'duck_type' }),
 	 * }).register(locales.zod, { key: 'animals.duck', prefix: 'duck' });
 	 *
-	 * text('duck.name'); // 'Duck Name'
-	 * text('duck_type.mallard') // 'Mallard'
+	 * locales.text('duck.name'); // 'Duck Name'
+	 * locales.text('duck_type.mallard') // 'Mallard'
 	 * ```
 	 */
 	prefix?: string;
