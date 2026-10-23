@@ -30,11 +30,11 @@ locales.load('path/to/locales');
 
 ## Types
 
-The `locales` command generates a module declaring the keys in a package's `locales` directory, so that `text` checks keys and replacements:
+The `locales-typegen` command generates a module declaring the keys in a package's `locales` directory, so that `text` checks keys and replacements:
 
 ```sh
-locales typegen                      # writes src/.locale.ts
-locales typegen packages/* -o src/.locale.ts -r en
+locales-typegen                      # writes src/.locale.ts
+locales-typegen packages/* -o src/.locale.ts -r en
 ```
 
 ## Zod

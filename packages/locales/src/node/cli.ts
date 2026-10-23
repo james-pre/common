@@ -8,7 +8,7 @@ import { fallbackLocale } from '../locale.js';
 import { merge, read } from './files.js';
 import { generateTypes } from './typegen.js';
 
-const usage = `Usage: locales typegen [options] [dirs...]
+const usage = `Usage: locales-typegen [options] [dirs...]
 
 Generate types for the translation keys of each package directory (default: .)
 
@@ -38,20 +38,11 @@ try {
 	process.exit(1);
 }
 
-const {
-	positionals: [command, ...dirs],
-	values: opts,
-} = parsed;
+const { positionals: dirs, values: opts } = parsed;
 
 if (opts.help) {
 	console.error(usage);
 	process.exit(0);
-}
-
-if (command != 'typegen') {
-	if (command) io.error('Unknown command: ' + command);
-	console.error(usage);
-	process.exit(1);
 }
 
 io._setDebugOutput(opts.verbose);
