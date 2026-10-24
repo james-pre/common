@@ -16,6 +16,15 @@ locales.text('duck.name'); // 'Nom du canard'
 locales.text('duck.greeting', { name: 'Jerry' }); // 'Hello Jerry!', from the fallback locale (`en`)
 ```
 
+A translation can have a form for each [plural category](https://cldr.unicode.org/index/cldr-spec/plural-rules) of its locale, chosen by the `count` replacement. It needs an `other` form, and its keys can only be plural categories:
+
+```ts
+locales.extend('en', { files: { one: '{count} file', other: '{count} files' } });
+
+locales.text('files', { count: 1 }); // '1 file'
+locales.text('files', { count: 3 }); // '3 files'
+```
+
 `locales.resolve('en-US')` finds the best loaded locale for a language tag, and `countryName`, `dateField`, `conjoin`, `disjoin`, and `monthNames` follow the current locale.
 
 ## Node.js

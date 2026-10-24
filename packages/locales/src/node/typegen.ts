@@ -17,9 +17,14 @@ export function generateTypes(data: Data): string {
 	for (const [key, translation] of flatten(data)
 		.toArray()
 		.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
-		const names = new Set(Array.from(translation.matchAll(replacementPattern), ([, name]) => name));
-		if (names.size) usesValue = true;
-		const replacements = names.size ? `{ ${Array.from(names, name => `${name}: Value`).join('; ')} }` : '{}';
+		const forms = typeof translation == 'string' ? [translation] : Object.values(translation);
+		const names = new Set(forms.flatMap(form => Array.from(form.matchAll(replacementPattern), ([, name]) => name)));
+		const types = new Map(Array.from(names, name => [name, 'Value']));
+		if (typeof translation != 'string') types.set('count', 'number');
+		if (types.values().some(type => type == 'Value')) usesValue = true;
+		const replacements = types.size
+			? `{ ${Array.from(types, ([name, type]) => `${name}: ${type}`).join('; ')} }`
+			: '{}';
 
 		keys += `		${quote(key)}: ${replacements};\n`;
 	}

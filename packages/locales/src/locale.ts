@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 import * as io from 'ioium';
 import { getByString } from 'utilium';
-import { loaded, type Key, type Keys, type Value } from './data.js';
+import { isPlural, loaded, type Key, type Keys, type PluralCategory, type Value } from './data.js';
 
 /** The locale `text` translates to */
 export let current = 'en';
@@ -92,6 +92,18 @@ type ReplacementsArgs<K extends string> =
 
 const replacementPattern = /\{(\w+)\}/g;
 
+const pluralRules = new Map<string, Intl.PluralRules>();
+
+/** The plural category of a count in a locale, e.g. `one` for 1 in English */
+export function pluralCategory(locale: string, count: number): PluralCategory {
+	let rules = pluralRules.get(locale);
+	if (!rules) {
+		rules = new Intl.PluralRules(locale);
+		pluralRules.set(locale, rules);
+	}
+	return rules.select(count);
+}
+
 /**
  * Get localized text for a given translation key
  * @example
@@ -102,11 +114,18 @@ const replacementPattern = /\{(\w+)\}/g;
 export function text<const K extends string = Key>(key: K, ...args: ReplacementsArgs<K>): string {
 	const values: Record<string, any> & ReplacementOptions = Object.assign(Object.create(null), args[0]);
 
+	let locale = current;
 	let translation: string | object | undefined = getByString(loaded[current], key) || values.$default;
 
 	if (!translation && current != fallback) {
 		io.warn(`Missing translation in ${current}: ` + key);
+		locale = fallback;
 		translation = getByString(loaded[fallback], key);
+	}
+
+	if (isPlural(translation)) {
+		if (typeof values.count != 'number') io.error(new Error(`Missing a numeric count for ${key}`));
+		translation = translation[pluralCategory(locale, Number(values.count))] ?? translation.other;
 	}
 
 	if (!translation) {
