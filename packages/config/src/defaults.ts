@@ -118,6 +118,12 @@ function _with(schema: z.ZodType, value: unknown): unknown {
 				if (item) value[i] = _with(item, value[i]);
 			}
 			return value;
+		case 'union': {
+			const option = (def.options as z.ZodType[]).find(
+				option => z.deepPartial(strip(option)).safeParse(value).success
+			);
+			return option ? _with(option, value) : value;
+		}
 		default:
 			return value;
 	}
